@@ -6,8 +6,7 @@ import {
   CalendarDays,
   Check,
   ChevronRight,
-  Clock3,
-  Gift,
+  Palette,
   HelpCircle,
   MapPin,
   Menu,
@@ -20,31 +19,24 @@ import {
 const heroSlides = [
   {
     src: "/wedding-slide-1.jpg",
-
   },
   {
     src: "/wedding-slide-2.jpg",
-
   },
   {
     src: "/wedding-slide-3.jpg",
-   
   },
-    {
+  {
     src: "/wedding-slide-4.jpg",
-   
   },
-    {
+  {
     src: "/wedding-slide-5.jpg",
-   
   },
-    {
+  {
     src: "/wedding-slide-6.jpg",
-   
   },
-    {
+  {
     src: "/wedding-slide-7.jpg",
-   
   },
 ];
 
@@ -52,7 +44,6 @@ const journalSlides = [
   ...heroSlides,
   {
     src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG-20261020-WA0048-MrpChoz32kUukYNLK2mKDPYeVROXmd.jpg",
-  
   },
 ];
 
@@ -72,7 +63,7 @@ const details = [
   },
   { icon: MapPin, label: "Goshen Wedding Centre", detail: "Hatfield" },
   {
-    icon: Clock3,
+    icon: Palette,
     label: "Formal & glamorous",
     detail: "Dress to impress and to dance",
   },
@@ -113,13 +104,34 @@ export default function Page() {
     if (!audio) return;
 
     audio.volume = 0.35;
+    const startMusic = () => {
+      audio
+        .play()
+        .then(() => {
+          setMusicOn(true);
+          window.removeEventListener("pointerdown", startMusic);
+          window.removeEventListener("keydown", startMusic);
+        })
+        .catch(() => setMusicOn(false));
+    };
+
+    const onAutoplayBlocked = () => {
+      window.addEventListener("pointerdown", startMusic);
+      window.addEventListener("keydown", startMusic);
+    };
+
     audio
       .play()
       .then(() => setMusicOn(true))
       .catch(() => {
-        // Browsers may block audible autoplay until the visitor interacts.
         setMusicOn(false);
+        onAutoplayBlocked();
       });
+
+    return () => {
+      window.removeEventListener("pointerdown", startMusic);
+      window.removeEventListener("keydown", startMusic);
+    };
   }, []);
 
   useEffect(() => {
@@ -148,33 +160,45 @@ export default function Page() {
   return (
     <main className="min-h-screen overflow-hidden bg-[#f8f5ef] text-[#24342f]">
       <header className="absolute inset-x-0 top-0 z-20">
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-[#182c28]/70 via-[#182c28]/35 to-transparent"
+          aria-hidden="true"
+        />
         <nav
-          className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6 lg:px-10"
+          className="relative mx-auto flex max-w-7xl items-center justify-between px-6 py-6 lg:px-10"
           aria-label="Main navigation"
         >
           <a
             href="#top"
-            className="font-serif text-2xl italic tracking-tight text-white"
+            className="font-serif text-2xl font-medium italic tracking-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]"
           >
             E <span className="not-italic">&amp;</span> T
           </a>
-          <div className="hidden items-center gap-9 text-[11px] font-medium uppercase tracking-[0.24em] text-white/90 md:flex">
-            <a
-              className="transition-opacity hover:opacity-60"
-              href="#our-story"
-            >
-              Our story
-            </a>
-            <a className="transition-opacity hover:opacity-60" href="#details">
-              Details
-            </a>
-            <a className="transition-opacity hover:opacity-60" href="#rsvp">
-              RSVP
-            </a>
-          </div>
+         
+<div className="hidden items-center gap-9 text-sm font-medium uppercase tracking-[0.2em] text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.95)] md:flex">
+  <a
+    className="underline decoration-1 underline-offset-8 transition-opacity hover:opacity-60"
+    href="#our-story"
+  >
+    Our story
+  </a>
+  <a
+    className="underline decoration-1 underline-offset-8 transition-opacity hover:opacity-60"
+    href="#details"
+  >
+    Details
+  </a>
+  <a
+    className="underline decoration-1 underline-offset-8 transition-opacity hover:opacity-60"
+    href="#rsvp"
+  >
+    RSVP
+  </a>
+</div>
+
           <a
             href="#rsvp"
-            className="hidden rounded-full border border-white/70 px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.2em] text-white transition-colors hover:bg-white hover:text-[#24342f] md:block"
+            className="hidden rounded-full border-1 border-white px-5 py-2.5 text-sm font-medium uppercase tracking-[0.18em] text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.95)] transition-colors hover:bg-white hover:text-[#24342f] md:block"
           >
             Kindly reply
           </a>
@@ -187,7 +211,7 @@ export default function Page() {
           </button>
         </nav>
         {menuOpen && (
-          <div className="mx-4 flex flex-col gap-5 rounded-2xl bg-[#24342f] p-6 text-sm uppercase tracking-[0.2em] text-white md:hidden">
+          <div className="mx-4 flex flex-col gap-5 rounded-2xl bg-[#24342f] p-6 text-sm font-semibold uppercase tracking-[0.2em] text-white md:hidden">
             <a href="#our-story" onClick={() => setMenuOpen(false)}>
               Our story
             </a>
@@ -203,7 +227,7 @@ export default function Page() {
 
       <section
         id="top"
-        className="relative flex min-h-[720px] items-end overflow-hidden bg-[#52645b] pb-14 pt-36 sm:pb-16 sm:pt-32 lg:min-h-[800px] lg:pb-24"
+        className="relative flex min-h-[720px] flex-col items-start overflow-hidden bg-[#52645b] pb-14 pt-36 sm:pb-16 sm:pt-32 lg:min-h-[800px] lg:pb-24"
       >
         <img
           src="/wedding-hero.png"
@@ -212,6 +236,10 @@ export default function Page() {
           className="absolute inset-0 size-full object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#182c28]/75 via-[#24342f]/10 to-[#24342f]/20" />
+        <div
+          className="absolute inset-0 bg-gradient-to-r from-[#182c28]/55 via-[#182c28]/25 to-transparent"
+          aria-hidden="true"
+        />
         <div
           className="pointer-events-none absolute inset-0 overflow-hidden"
           aria-hidden="true"
@@ -230,23 +258,23 @@ export default function Page() {
             />
           ))}
         </div>
-        <div className="relative mx-auto w-full max-w-7xl px-6 text-white lg:px-10">
-          <p className="mb-5 text-[11px] font-medium uppercase tracking-[0.32em] text-white/80">
-            We&apos;re getting married
+        <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 text-white lg:px-10">
+          <p className="mb-5 text-medium font-light uppercase tracking-[0.32em] text-white drop-shadow-xl font-italic">
+            We&apos;re getting married !
           </p>
           <h1 className="flex max-w-3xl flex-col items-start font-serif text-[3.35rem] leading-[0.9] tracking-[-0.045em] sm:text-8xl lg:text-[10rem]">
             <span>Elishama</span>
             <span className="font-light italic">&amp;</span>
             <span>Tadiwanashe W.G. Samuel</span>
           </h1>
-          <div className="mt-7 flex items-center gap-3 text-xs text-white/90 sm:mt-9 sm:gap-4 sm:text-sm">
+          <div className="mt-auto flex items-center gap-3 pt-7 font-semibold text-white drop-shadow-md sm:gap-4 sm:text-sm lg:mt-9 lg:pt-0">
             <span className="h-px w-8 bg-white/60 sm:w-12" />
-            December 19, 2026 <span className="h-px w-8 bg-white/60 sm:w-12" />
+            <span className="text-2xl">December 19, 2026</span> <span className="h-px w-8 bg-white/60 sm:w-12" />
           </div>
         </div>
         <a
           href="#our-story"
-          className="absolute bottom-7 right-6 hidden items-center gap-3 text-[10px] uppercase tracking-[0.26em] text-white/80 lg:flex"
+          className="absolute bottom-7 right-6 hidden items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.26em] text-white drop-shadow-md lg:flex"
         >
           Scroll to explore <ArrowDown className="size-4" />
         </a>
@@ -266,8 +294,10 @@ export default function Page() {
         </div>
         <div className="max-w-xl">
           <p className="font-serif text-2xl leading-[1.35] text-[#53645d]">
-            What started as a missed train in Brooklyn turned into long walks,
-            Sunday dinners, and a life we never want to stop building together.
+            Every love story has its own beginning, its unexpected turns, and
+            its moments that change everything. Ours has brought us to this
+            beautiful day, where forever feels less like a promise and more like
+            the most natural thing in the world.
           </p>
           <p className="mt-6 text-sm leading-7 text-[#6d7770]">
             Now, we&apos;re gathering the people we love most to celebrate this
@@ -341,9 +371,6 @@ export default function Page() {
               married couples; singles have separate invites.
               <br />
               <br />
-              RSVP to Mrs Chipare: +263 77 226 8080
-              <br />
-              elishama.chipare@gmail.com
             </p>
           </div>
           {submitted ? (
@@ -393,7 +420,7 @@ export default function Page() {
                   type="tel"
                   name="phone"
                   className="border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-white outline-none placeholder:text-white/25 focus:border-[#d7a58d]"
-                  placeholder="(555) 123-4567"
+                  placeholder="0781 234 567"
                 />
               </label>
               <label className="grid gap-2 text-[11px] uppercase tracking-[0.2em] text-white/60">
@@ -414,6 +441,13 @@ export default function Page() {
               </button>
             </form>
           )}
+          <p className="text-lg">
+            
+            OR RSVP to:<br/>
+            <strong>Mrs Chipare: +263 77 226 8080</strong>
+            
+          </p>
+          
         </div>
       </section>
 
@@ -484,9 +518,14 @@ export default function Page() {
                 Getting there
               </h3>
               <p className="mt-3 text-sm leading-6 text-[#6d7770]">
-                Goshen Wedding Centre, Hatfield. Add the venue to your map
-                before the day and plan to arrive early.
+                From Harare CBD, take Seke Road southeast towards Hatfield.
+                Follow local signs to Goshen Inspiration Park, 8 Fern Road.
+                You can also see <a
+              className="text-blue-600 text-underline hover:opacity-60"
+              href="#venue-map"
+            >googlemaps below..</a>
               </p>
+
             </div>
             <div className="border-t border-[#c8c5bb] pt-5">
               <HelpCircle
@@ -502,18 +541,33 @@ export default function Page() {
                 invites.
               </p>
             </div>
-            <div className="border-t border-[#c8c5bb] pt-5 sm:col-span-2">
-              <Gift className="mb-5 size-5 text-[#a06b58]" strokeWidth={1.5} />
-              <h3 className="font-serif text-2xl text-[#24342f]">
-                Your presence is the present
-              </h3>
-              <p className="mt-3 max-w-xl text-sm leading-6 text-[#6d7770]">
-                The greatest gift is celebrating this day with us. Come with
-                your dancing shoes, your appetite, and your favorite memories of
-                the couple.
-              </p>
-            </div>
+            
+            
           </div>
+        </div>
+      </section>
+
+      <section
+        id="venue-map"
+        className="bg-[#f1ede5] px-6 py-20 text-center lg:px-10 lg:py-24"
+      >
+        <div className="mx-auto mb-8 max-w-7xl">
+          <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.3em] text-[#a06b58]">
+            Find us
+          </p>
+          <h2 className="font-serif text-4xl tracking-[-0.03em] text-[#24342f] sm:text-5xl">
+            Goshen Wedding Centre
+          </h2>
+          <p className="mt-3 text-sm text-[#6d7770]">Hatfield</p>
+        </div>
+        <div className="mx-auto w-full overflow-hidden rounded-2xl border border-[#c8c5bb] shadow-sm lg:w-3/4">
+          <iframe
+            title="Map to Goshen Wedding Centre"
+            src="https://maps.google.com/maps?q=Goshen%20Inspiration%20Park&output=embed"
+            className="h-[320px] w-full border-0 sm:h-[400px] lg:h-[480px]"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
         </div>
       </section>
 
@@ -535,7 +589,7 @@ export default function Page() {
             </p>
           </div>
           <div
-            className="relative min-h-[430px] sm:min-h-[520px]"
+            className="relative h-[430px] sm:h-[520px] lg:h-[640px]"
             aria-label="A floating slideshow of memories"
           >
             {Array.from({ length: 3 }, (_, index) => {
@@ -544,17 +598,14 @@ export default function Page() {
               const positions = [
                 "left-[4%] top-[6%] rotate-[-5deg]",
                 "right-[3%] top-[22%] rotate-[4deg]",
-                "left-[24%] bottom-[1%] rotate-[-2deg]",
+                "left-[24%] bottom-[4%] rotate-[-2deg]",
               ];
               return (
                 <div
                   key={`${activeJournal}-${slide.src}`}
                   className={`journal-card absolute ${positions[index]} ${index === 0 ? "h-[62%] w-[48%]" : "h-[48%] w-[42%]"}`}
                 >
-                  <img
-                    src={slide.src}
-                    className="size-full object-cover"
-                  />
+                  <img src={slide.src} className="size-full object-cover" />
                 </div>
               );
             })}
@@ -589,6 +640,7 @@ export default function Page() {
       <audio
         ref={audioRef}
         src="/wedding-piano.mp3"
+        autoPlay
         loop
         preload="auto"
         aria-label="Soft piano background music"
@@ -611,7 +663,7 @@ export default function Page() {
           E <span className="not-italic">&amp;</span> T
         </p>
         <p className="text-[10px] uppercase tracking-[0.24em] text-[#8a918a]">
-          Made with love · December 19, 2026
+          Come celebrate with us · December 19, 2026
         </p>
       </footer>
     </main>
