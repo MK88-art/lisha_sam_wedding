@@ -1,0 +1,57 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  color-scheme: light;
+  --background: oklch(0.975 0.012 85);
+  --foreground: oklch(0.24 0.04 160);
+  --radius: 0.625rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body { @apply bg-background text-foreground; }
+  ::selection { background: #d7a58d; color: #24342f; }
+}
+
+@keyframes wedding-petal-fall {
+  0% { transform: translate3d(0, -10vh, 0) rotate(0deg); opacity: 0; }
+  12% { opacity: 0.9; }
+  50% { transform: translate3d(45px, 52vh, 0) rotate(180deg); }
+  100% { transform: translate3d(-35px, 112vh, 0) rotate(360deg); opacity: 0.05; }
+}
+
+.wedding-petal { animation: wedding-petal-fall linear infinite; }
+
+@keyframes journal-float {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(var(--journal-rotation)); }
+  50% { transform: translate3d(8px, -12px, 0) rotate(calc(var(--journal-rotation) + 2deg)); }
+}
+
+.journal-card {
+  animation: journal-fade-in 900ms ease both, journal-float 5s ease-in-out 900ms infinite;
+  border: 8px solid #faf7f0;
+  box-shadow: 0 22px 45px rgba(36, 52, 47, 0.18);
+}
+
+.journal-card:nth-child(1) { --journal-rotation: -5deg; }
+.journal-card:nth-child(2) { --journal-rotation: 4deg; animation-delay: 120ms, 1s; }
+.journal-card:nth-child(3) { --journal-rotation: -2deg; animation-delay: 240ms, 1.2s; }
+
+@keyframes journal-fade-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wedding-petal { animation: none; opacity: 0; }
+  .journal-card { animation: none; }
+}
