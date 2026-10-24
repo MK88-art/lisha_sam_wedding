@@ -38,13 +38,25 @@ const heroSlides = [
   {
     src: "/wedding-slide-7.jpg",
   },
+    {
+    src: "/wedding-slide-8.jpg",
+  },
+    {
+    src: "/wedding-slide-9.jpg",
+  },
+    {
+    src: "/wedding-slide-10.jpg",
+  },
+    {
+    src: "/wedding-slide-11.jpg",
+  },
+    {
+    src: "/wedding-slide-12.jpg",
+  }
 ];
 
 const journalSlides = [
-  ...heroSlides,
-  {
-    src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG-20261020-WA0048-MrpChoz32kUukYNLK2mKDPYeVROXmd.jpg",
-  },
+  ...heroSlides
 ];
 
 const petals = Array.from({ length: 18 }, (_, index) => ({
@@ -61,7 +73,7 @@ const details = [
     label: "Saturday, December 19, 2026",
     detail: "The ceremony begins at 10:00 AM",
   },
-  { icon: MapPin, label: "Goshen Wedding Centre", detail: "Hatfield" },
+  { icon: MapPin, label: "Goshen Inspirational Park", detail: "Hatfield" },
   {
     icon: Palette,
     label: "Formal & glamorous",
@@ -72,6 +84,10 @@ const details = [
 export default function Page() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [guestStatus, setGuestStatus] = useState("");
+  const [bringingPlusOne, setBringingPlusOne] = useState("");
+  const [rsvpSubmitting, setRsvpSubmitting] = useState(false);
+  const [rsvpError, setRsvpError] = useState("");
   const [musicOn, setMusicOn] = useState(false);
   const [activeJournal, setActiveJournal] = useState(0);
   const [countdown, setCountdown] = useState({
@@ -165,17 +181,21 @@ export default function Page() {
           aria-hidden="true"
         />
         <nav
-          className="relative mx-auto flex max-w-7xl items-center justify-between px-6 py-6 lg:px-10"
+          className="relative mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-6 lg:px-10"
           aria-label="Main navigation"
         >
           <a
             href="#top"
-            className="font-serif text-2xl font-medium italic tracking-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]"
+            className="inline-flex shrink-0 items-center"
           >
-            E <span className="not-italic">&amp;</span> T
+            <img
+              src="/tne-white-logo.png"
+              alt="Elishama and Tadiwanashe wedding logo"
+              className="h-20 w-auto object-contain md:h-24 lg:h-32"
+            />
           </a>
          
-<div className="hidden items-center gap-9 text-sm font-medium uppercase tracking-[0.2em] text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.95)] md:flex">
+<div className="hidden flex-1 items-center justify-center gap-4 whitespace-nowrap text-sm font-medium uppercase tracking-[0.2em] text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.95)] md:flex lg:gap-9">
   <a
     className="underline decoration-1 underline-offset-8 transition-opacity hover:opacity-60"
     href="#our-story"
@@ -198,7 +218,7 @@ export default function Page() {
 
           <a
             href="#rsvp"
-            className="hidden rounded-full border-1 border-white px-5 py-2.5 text-sm font-medium uppercase tracking-[0.18em] text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.95)] transition-colors hover:bg-white hover:text-[#24342f] md:block"
+            className="hidden shrink-0 whitespace-nowrap rounded-full border-1 border-white px-5 py-2.5 text-sm font-medium uppercase tracking-[0.18em] text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.95)] transition-colors hover:bg-white hover:text-[#24342f] lg:block"
           >
             Kindly reply
           </a>
@@ -227,7 +247,7 @@ export default function Page() {
 
       <section
         id="top"
-        className="relative flex min-h-[720px] flex-col items-start overflow-hidden bg-[#52645b] pb-14 pt-36 sm:pb-16 sm:pt-32 lg:min-h-[800px] lg:pb-24"
+        className="relative flex min-h-[720px] flex-col items-start overflow-hidden bg-[#52645b] pb-14 pt-36 sm:pb-16 sm:pt-40 lg:min-h-[800px] lg:pb-24 lg:pt-52"
       >
         <img
           src="/wedding-hero.png"
@@ -367,8 +387,8 @@ export default function Page() {
               you can <span className="italic">make it.</span>
             </h2>
             <p className="mt-8 max-w-xs text-sm leading-6 text-white/60">
-              Please reply by 30 November 2026. Plus ones are welcome for
-              married couples; singles have separate invites.
+              Please reply by 30 November 2026. Married guests may list their
+              spouse on the RSVP form; single guests cannot add a plus one.
               <br />
               <br />
             </p>
@@ -386,9 +406,48 @@ export default function Page() {
             </div>
           ) : (
             <form
-              onSubmit={(event) => {
+              onSubmit={async (event) => {
                 event.preventDefault();
-                setSubmitted(true);
+                setRsvpSubmitting(true);
+                setRsvpError("");
+
+                const formData = new FormData(event.currentTarget);
+                const payload = {
+                  name: formData.get("name"),
+                  guestStatus: formData.get("guestStatus"),
+                  bringingPlusOne:
+                    guestStatus === "married" ? bringingPlusOne : "no",
+                  plusOne: formData.get("plusOne"),
+                  attendance: formData.get("attendance"),
+                  phone: formData.get("phone"),
+                  email: formData.get("email"),
+                };
+
+                try {
+                  const response = await fetch(
+                    process.env.NEXT_PUBLIC_RSVP_API_URL || "/api/rsvps.php",
+                    {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(payload),
+                    },
+                  );
+                  const result = await response.json();
+
+                  if (!response.ok) {
+                    throw new Error(result.error || "Unable to submit RSVP.");
+                  }
+
+                  setSubmitted(true);
+                } catch (error) {
+                  setRsvpError(
+                    error instanceof Error
+                      ? error.message
+                      : "Unable to submit RSVP. Please try again.",
+                  );
+                } finally {
+                  setRsvpSubmitting(false);
+                }
               }}
               className="grid max-w-xl gap-6 border-t border-white/20 pt-8"
             >
@@ -397,19 +456,84 @@ export default function Page() {
                 <input
                   required
                   name="name"
-                  className="border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-white outline-none placeholder:text-white/25 focus:border-[#d7a58d]"
+                  className="border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-white/50 outline-none placeholder:text-white/25 focus:border-[#d7a58d]"
                   placeholder="First and last name"
                 />
               </label>
               <label className="grid gap-2 text-[11px] uppercase tracking-[0.2em] text-white/60">
+                Are you married or single?
+                <select
+                  required
+                  name="guestStatus"
+                  value={guestStatus}
+                  onChange={(event) => {
+                    setGuestStatus(event.target.value);
+                    setBringingPlusOne("");
+                  }}
+                  className="border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-text-white/50 outline-none focus:border-[#d7a58d]"
+                >
+                  <option value="" disabled className="text-[#24342f]">
+                    Select your status
+                  </option>
+                  <option value="married" className="text-[#24342f]">
+                    Married
+                  </option>
+                  <option value="single" className="text-[#24342f]">
+                    Single
+                  </option>
+                </select>
+              </label>
+              {guestStatus === "married" && (
+                <>
+                  <label className="grid gap-2 text-[11px] uppercase tracking-[0.2em] text-white/60">
+                    Are you coming with a plus one?
+                    <select
+                      required
+                      name="bringingPlusOne"
+                      value={bringingPlusOne}
+                      onChange={(event) =>
+                        setBringingPlusOne(event.target.value)
+                      }
+                      className="border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-white/50 outline-none focus:border-[#d7a58d]"
+                    >
+                      <option value="" disabled className="text-[#24342f]">
+                        Select an answer
+                      </option>
+                      <option value="yes" className="text-[#24342f]">
+                        Yes
+                      </option>
+                      <option value="no" className="text-[#24342f]">
+                        No
+                      </option>
+                    </select>
+                  </label>
+                  {bringingPlusOne === "yes" && (
+                    <label className="grid gap-2 text-[11px] uppercase tracking-[0.2em] text-white/60">
+                      Spouse&apos;s name
+                      <input
+                        required
+                        name="plusOne"
+                        className="border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-white/50 outline-none placeholder:text-white/25 focus:border-[#d7a58d]"
+                        placeholder="First and last name"
+                      />
+                    </label>
+                  )}
+                </>
+              )}
+              <label className="grid gap-2 text-[11px] uppercase tracking-[0.2em] text-white/60">
                 Will you be joining us?
                 <select
                   name="attendance"
-                  className="border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-white outline-none focus:border-[#d7a58d]"
+                  className="border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-white/50 outline-none focus:border-[#d7a58d]"
                 >
-                  <option className="text-[#24342f]">Joyfully accepts</option>
-                  <option className="text-[#24342f]">
-                    Regretfully declines
+                  <option value="Joyfully accept" className="text-[#24342f]">
+                    Joyfully accept
+                  </option>
+                  <option
+                    value="Regretfully decline"
+                    className="text-[#24342f]"
+                  >
+                    Regretfully decline
                   </option>
                 </select>
               </label>
@@ -419,7 +543,7 @@ export default function Page() {
                   required
                   type="tel"
                   name="phone"
-                  className="border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-white outline-none placeholder:text-white/25 focus:border-[#d7a58d]"
+                  className="border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-white/50 outline-none placeholder:text-white/25 focus:border-[#d7a58d]"
                   placeholder="0781 234 567"
                 />
               </label>
@@ -429,22 +553,30 @@ export default function Page() {
                   required
                   type="email"
                   name="email"
-                  className="border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-white outline-none placeholder:text-white/25 focus:border-[#d7a58d]"
+                  className="border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-white/50 outline-none placeholder:text-white/25 focus:border-[#d7a58d]"
                   placeholder="you@example.com"
                 />
               </label>
               <button
                 type="submit"
+                disabled={rsvpSubmitting}
                 className="mt-4 flex w-fit items-center gap-3 rounded-full bg-[#d7a58d] px-7 py-4 text-[11px] font-medium uppercase tracking-[0.2em] text-[#24342f] transition-transform hover:scale-[1.02]"
               >
-                Send my RSVP <ChevronRight className="size-4" />
+                {rsvpSubmitting ? "Sending..." : "Send my RSVP"}{" "}
+                <ChevronRight className="size-4" />
               </button>
+              {rsvpError && (
+                <p role="alert" className="text-sm text-red-300">
+                  {rsvpError}
+                </p>
+              )}
             </form>
           )}
           <p className="text-lg">
             
             OR RSVP to:<br/>
-            <strong>Mrs Chipare: +263 77 226 8080</strong>
+            <strong>Eliasaph: +263 781 203 104</strong> 
+            {/* |<strong>: </strong> */}
             
           </p>
           
@@ -472,7 +604,7 @@ export default function Page() {
           </div>
           <div className="grid border-t border-white/20 md:grid-cols-4">
             {[
-              ["10:00 AM", "Ceremony", "Goshen Wedding Centre"],
+              ["10:00 AM", "Ceremony", "Goshen Inspirational Park"],
               ["12:00 PM", "Celebration", "Food, laughter, and photographs"],
               ["3:00 PM", "Games", "A little friendly competition"],
               ["6:00 PM", "After party", "Dance with us into the evening"],
@@ -556,13 +688,13 @@ export default function Page() {
             Find us
           </p>
           <h2 className="font-serif text-4xl tracking-[-0.03em] text-[#24342f] sm:text-5xl">
-            Goshen Wedding Centre
+            Goshen Inspirational Park
           </h2>
           <p className="mt-3 text-sm text-[#6d7770]">Hatfield</p>
         </div>
         <div className="mx-auto w-full overflow-hidden rounded-2xl border border-[#c8c5bb] shadow-sm lg:w-3/4">
           <iframe
-            title="Map to Goshen Wedding Centre"
+            title="Map to Goshen Inspirational Park"
             src="https://maps.google.com/maps?q=Goshen%20Inspiration%20Park&output=embed"
             className="h-[320px] w-full border-0 sm:h-[400px] lg:h-[480px]"
             loading="lazy"
@@ -659,9 +791,11 @@ export default function Page() {
         )}
       </button>
       <footer className="flex flex-col items-center gap-4 bg-[#f8f5ef] px-6 py-12 text-center">
-        <p className="font-serif text-3xl italic text-[#24342f]">
-          E <span className="not-italic">&amp;</span> T
-        </p>
+        <img
+          src="/tne-black-logo.png"
+          alt="Elishama and Tadiwanashe wedding logo"
+          className="h-32 w-auto object-contain"
+        />
         <p className="text-[10px] uppercase tracking-[0.24em] text-[#8a918a]">
           Come celebrate with us · December 19, 2026
         </p>

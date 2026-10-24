@@ -55,3 +55,26 @@
   .wedding-petal { animation: none; opacity: 0; }
   .journal-card { animation: none; }
 }
+
+@media print {
+  @page { size: landscape; margin: 14mm; }
+
+  body,
+  main {
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  .print-hidden { display: none !important; }
+  main { min-height: 0 !important; padding: 0 !important; }
+  main > div { max-width: none !important; }
+  .overflow-x-auto { overflow: visible !important; }
+  table { min-width: 100% !important; font-size: 9pt !important; }
+  th,
+  td {
+    padding: 0.35rem !important;
+    color: #111 !important;
+    overflow-wrap: anywhere;
+  }
+  tr { break-inside: avoid; }
+}
