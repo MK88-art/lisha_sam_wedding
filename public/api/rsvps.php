@@ -19,7 +19,7 @@ function environment(string $name, string $default = ''): string
 
 function database(): PDO
 {
-    $connectionUrl = environment('postgresql://postgres:G0od2o15%23%40mk88@db.rjwskptacahchphitron.supabase.co:5432/postgres');
+    $connectionUrl = environment('SUPABASE_DATABASE_URL');
     $parts = $connectionUrl !== '' ? parse_url($connectionUrl) : false;
 
     if (
