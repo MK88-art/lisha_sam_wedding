@@ -17,8 +17,16 @@ function environment(string $name, string $default = ''): string
     return $value === false ? $default : $value;
 }
 
+class DatabaseConfigurationException extends RuntimeException
+{
+}
+
 function database(): PDO
 {
+    if (!extension_loaded('pdo_pgsql')) {
+        throw new DatabaseConfigurationException('The pdo_pgsql extension is not enabled.');
+    }
+
     $connectionUrl = environment('SUPABASE_DATABASE_URL');
     $parts = $connectionUrl !== '' ? parse_url($connectionUrl) : false;
 
@@ -30,7 +38,7 @@ function database(): PDO
         || !array_key_exists('pass', $parts)
         || empty($parts['path'])
     ) {
-        throw new RuntimeException('Supabase database URL is missing or invalid.');
+        throw new DatabaseConfigurationException('Supabase database URL is missing or invalid.');
     }
 
     $host = $parts['host'];
@@ -48,7 +56,7 @@ function database(): PDO
         || $user === ''
         || $password === ''
     ) {
-        throw new RuntimeException('Supabase database URL contains invalid connection details.');
+        throw new DatabaseConfigurationException('Supabase database URL contains invalid connection details.');
     }
 
     return new PDO("pgsql:host={$host};port={$port};dbname={$name};sslmode=require", $user, $password, [
@@ -61,7 +69,7 @@ function database(): PDO
 $method = $_SERVER['REQUEST_METHOD'] ?? '';
 
 if ($method === 'GET') {
-    $adminPassword = environment('lisha_sam_admin');
+    $adminPassword = environment('RSVP_ADMIN_PASSWORD');
     $providedPassword = $_SERVER['HTTP_X_ADMIN_PASSWORD'] ?? '';
 
     if ($adminPassword === '') {
@@ -93,7 +101,14 @@ if ($method === 'GET') {
         respond(200, ['records' => $records]);
     } catch (PDOException $exception) {
         error_log('RSVP database read failed: ' . $exception->getMessage());
-        respond(500, ['error' => 'Unable to load registrations right now.']);
+        respond(503, [
+            'error' => 'RSVP database request failed. Check the Supabase connection, confirm the rsvps table was created, and check PHP server logs.',
+        ]);
+    } catch (DatabaseConfigurationException $exception) {
+        error_log('RSVP database configuration failed: ' . $exception->getMessage());
+        respond(503, [
+            'error' => 'Database setup is incomplete. Check SUPABASE_DATABASE_URL and enable PHP pdo_pgsql on the web server.',
+        ]);
     } catch (RuntimeException $exception) {
         error_log('RSVP database configuration failed: ' . $exception->getMessage());
         respond(500, ['error' => 'Unable to load registrations right now.']);
@@ -177,7 +192,14 @@ try {
     respond(201, ['success' => true]);
 } catch (PDOException $exception) {
     error_log('RSVP database write failed: ' . $exception->getMessage());
-    respond(500, ['error' => 'Unable to save your RSVP right now. Please try again later.']);
+    respond(503, [
+        'error' => 'RSVP database request failed. Check the Supabase connection, confirm the rsvps table was created, and check PHP server logs.',
+    ]);
+} catch (DatabaseConfigurationException $exception) {
+    error_log('RSVP database configuration failed: ' . $exception->getMessage());
+    respond(503, [
+        'error' => 'Database setup is incomplete. Check SUPABASE_DATABASE_URL and enable PHP pdo_pgsql on the web server.',
+    ]);
 } catch (RuntimeException $exception) {
     error_log('RSVP database configuration failed: ' . $exception->getMessage());
     respond(500, ['error' => 'Unable to save your RSVP right now. Please try again later.']);
