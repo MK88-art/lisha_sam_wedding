@@ -283,9 +283,9 @@ export default function Page() {
             We&apos;re getting married !
           </p>
           <h1 className="flex max-w-3xl flex-col items-start font-serif text-[3.35rem] leading-[0.9] tracking-[-0.045em] sm:text-8xl lg:text-[10rem]">
-            <span>Elishama</span>
-            <span className="font-light italic">&amp;</span>
             <span>Tadiwanashe W.G. Samuel</span>
+            <span className="font-light italic">&amp;</span>
+            <span>Elishama</span>
           </h1>
           <div className="mt-auto flex items-center gap-3 pt-7 font-semibold text-white drop-shadow-md sm:gap-4 sm:text-sm lg:mt-9 lg:pt-0">
             <span className="h-px w-8 bg-white/60 sm:w-12" />
