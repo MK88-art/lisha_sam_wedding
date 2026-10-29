@@ -92,9 +92,7 @@ if ($method === 'GET') {
         $records = $statement->fetchAll();
 
         foreach ($records as &$record) {
-            $record['bringingPlusOne'] = $record['bringingPlusOne'] === true
-                || $record['bringingPlusOne'] === 't'
-                || $record['bringingPlusOne'] === '1';
+            $record['bringingPlusOne'] = $record['bringingPlusOne'] === 'yes';
         }
         unset($record);
 
@@ -191,7 +189,7 @@ try {
     );
     $statement->bindValue(
         ':bringing_plus_one',
-        $guestStatus === 'married' && $bringingPlusOne === 'yes' ? 'true' : 'false',
+        $guestStatus === 'married' && $bringingPlusOne === 'yes' ? 'yes' : 'no',
         PDO::PARAM_STR
     );
     $statement->bindValue(

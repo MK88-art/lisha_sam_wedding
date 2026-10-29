@@ -4,7 +4,7 @@ The site is a static Next.js export. The PHP endpoint is in `public/api/rsvps.ph
 
 ## Database
 
-Run `backend/schema.sql` against the PostgreSQL database before accepting RSVPs.
+For a new database, run `backend/schema.sql`. If the existing `rsvps` table was created with the earlier boolean `bringing_plus_one` column, run `backend/migrate_plus_one_to_text.sql` once in the Supabase SQL Editor before deploying the matching PHP endpoint. The migration preserves existing RSVP values and changes the field to constrained `yes`/`no` text.
 
 Configure these environment variables in the PHP hosting environment; do not put database credentials in client-side code or committed files:
 
