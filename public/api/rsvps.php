@@ -191,8 +191,8 @@ try {
     );
     $statement->bindValue(
         ':bringing_plus_one',
-        $guestStatus === 'married' && $bringingPlusOne === 'yes',
-        PDO::PARAM_BOOL
+        $guestStatus === 'married' && $bringingPlusOne === 'yes' ? 'true' : 'false',
+        PDO::PARAM_STR
     );
     $statement->bindValue(
         ':plus_one_name',
