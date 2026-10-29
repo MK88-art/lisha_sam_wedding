@@ -179,15 +179,30 @@ try {
          VALUES
             (:name, :guest_status, :bringing_plus_one, :plus_one_name, :attendance, :phone, :email)'
     );
-    $statement->execute([
-        ':name' => $name,
-        ':guest_status' => $guestStatus,
-        ':bringing_plus_one' => $guestStatus === 'married' && $bringingPlusOne === 'yes',
-        ':plus_one_name' => $plusOne !== '' ? $plusOne : null,
-        ':attendance' => $attendance,
-        ':phone' => $phone,
-        ':email' => $email,
-    ]);
+    $statement->bindValue(
+        ':name',
+        $name,
+        PDO::PARAM_STR
+    );
+    $statement->bindValue(
+        ':guest_status',
+        $guestStatus,
+        PDO::PARAM_STR
+    );
+    $statement->bindValue(
+        ':bringing_plus_one',
+        $guestStatus === 'married' && $bringingPlusOne === 'yes',
+        PDO::PARAM_BOOL
+    );
+    $statement->bindValue(
+        ':plus_one_name',
+        $plusOne !== '' ? $plusOne : null,
+        $plusOne !== '' ? PDO::PARAM_STR : PDO::PARAM_NULL
+    );
+    $statement->bindValue(':attendance', $attendance, PDO::PARAM_STR);
+    $statement->bindValue(':phone', $phone, PDO::PARAM_STR);
+    $statement->bindValue(':email', $email, PDO::PARAM_STR);
+    $statement->execute();
 
     respond(201, ['success' => true]);
 } catch (PDOException $exception) {
