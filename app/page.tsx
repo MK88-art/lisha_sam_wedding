@@ -432,7 +432,16 @@ export default function Page() {
                       body: JSON.stringify(payload),
                     },
                   );
-                  const result = await response.json();
+                  const responseBody = await response.text();
+                  let result: { error?: string; success?: boolean };
+
+                  try {
+                    result = JSON.parse(responseBody);
+                  } catch {
+                    throw new Error(
+                      `The RSVP server returned an unexpected response (HTTP ${response.status}). Please try again later.`,
+                    );
+                  }
 
                   if (!response.ok) {
                     throw new Error(result.error || "Unable to submit RSVP.");

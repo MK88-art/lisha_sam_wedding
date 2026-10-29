@@ -38,8 +38,16 @@ export default function RsvpsPage() {
         headers: { "X-Admin-Password": password },
         cache: "no-store",
       });
-      const result: { records?: Rsvp[]; error?: string } =
-        await response.json();
+      const responseBody = await response.text();
+      let result: { records?: Rsvp[]; error?: string };
+
+      try {
+        result = JSON.parse(responseBody);
+      } catch {
+        throw new Error(
+          `The RSVP server returned an unexpected response (HTTP ${response.status}). Check the PHP server logs.`,
+        );
+      }
 
       if (!response.ok) {
         throw new Error(result.error || "Unable to load RSVP records.");
