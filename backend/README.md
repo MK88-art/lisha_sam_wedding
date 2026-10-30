@@ -16,6 +16,7 @@ Configure these environment variables in the PHP hosting environment; do not put
 - `SMTP_USERNAME` and `SMTP_PASSWORD` — SMTP authentication credentials
 - `RSVP_FROM_ADDRESS` — `rsvp-tadiwa-elishama@adalacreations.com`
 - `RSVP_FROM_NAME` — `RSVP T&E WEDDING`
+- `RSVP_ERROR_LOG` (optional) — an absolute path outside the website document root for PHP/RSVP errors.
 
 The PHP process needs permission to read these variables. Keep the connection URL server-side; never use a `NEXT_PUBLIC_` variable for database credentials. If a real database password was shared in an unsafe place, rotate it in Supabase and update the server environment variable. The endpoint logs database errors server-side and returns actionable setup messages without exposing credentials.
 
@@ -58,5 +59,16 @@ The local API only allows browser requests from `localhost:3000` and `127.0.0.1:
 - `503 Database setup is incomplete`: set `SUPABASE_DATABASE_URL` in the PHP server environment and enable the PHP `pdo_pgsql` extension.
 - `503 RSVP database request failed`: check that the URL and password are correct, the password is URL-encoded if it contains reserved characters, the PHP host can make outbound PostgreSQL TLS connections to Supabase, and `backend/schema.sql` has been run against the right Supabase project. Check the PHP server error log for the underlying error.
 - RSVP succeeds but no confirmation email arrives: check all `SMTP_*` and `RSVP_FROM_*` settings, ensure the SMTP account permits sending as the configured from address, verify outbound port 465 is allowed, and inspect the PHP error log. A mail failure does not roll back or duplicate the saved RSVP.
+- No PHP error log is available: configure `RSVP_ERROR_LOG` in the PHP-FPM pool to an absolute path outside the website document root, make that file writable by the PHP-FPM worker user, and restart PHP-FPM. Do not write logs under `public/` or the deployed document root.
+
+On Ubuntu with PHP 8.1-FPM, for example, create a private log file owned by the FPM pool user (`www-data` on a default Ubuntu install):
+
+```sh
+sudo touch /var/log/php8.1-fpm-rsvp.log
+sudo chown www-data:www-data /var/log/php8.1-fpm-rsvp.log
+sudo chmod 640 /var/log/php8.1-fpm-rsvp.log
+```
+
+Add `env[RSVP_ERROR_LOG] = /var/log/php8.1-fpm-rsvp.log` to `/etc/php/8.1/fpm/pool.d/www.conf`, then restart with `sudo systemctl restart php8.1-fpm`. Check the FPM pool's configured `user` if it is not the Ubuntu default.
 
 Changes to PHP environment variables require restarting/reloading the PHP service if the hosting provider requires it. Deploy the updated `public/api/rsvps.php` after changing code.

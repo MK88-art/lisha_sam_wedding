@@ -399,7 +399,7 @@ export default function Page() {
               <div className="mb-5 flex size-12 items-center justify-center rounded-full bg-[#d7a58d] text-[#24342f]">
                 <Check />
               </div>
-              <h3 className="font-serif text-4xl">You&apos;re on the list.</h3>
+              <h3 className="font-serif text-4xl">Response saved.</h3>
               <p className="mt-3 text-sm text-white/60">
                 Thank you for letting us know.{" "}
                 {confirmationEmailSent

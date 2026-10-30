@@ -45,6 +45,12 @@ function environment(string $name, string $default = ''): string
     return $value === false ? $default : $value;
 }
 
+ini_set('log_errors', '1');
+$rsvpErrorLog = environment('RSVP_ERROR_LOG');
+if ($rsvpErrorLog !== '' && ini_set('error_log', $rsvpErrorLog) === false) {
+    error_log('Unable to configure the RSVP error log path.');
+}
+
 class DatabaseConfigurationException extends RuntimeException
 {
 }
@@ -351,9 +357,12 @@ try {
             'attendance' => $attendance,
             'email' => $email,
         ]);
-    } catch (Exception $exception) {
+    } catch (Throwable $exception) {
         $emailSent = false;
-        error_log('RSVP confirmation email failed: ' . $exception->getMessage());
+        error_log(
+            'RSVP confirmation email failed (' . get_class($exception) . '): '
+            . $exception->getMessage()
+        );
     }
 
     respond(201, ['success' => true, 'emailSent' => $emailSent]);
