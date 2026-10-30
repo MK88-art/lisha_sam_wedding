@@ -105,10 +105,10 @@ function sendConfirmationEmail(array $rsvp): void
     $mailer->isHTML(true);
     if ($rsvp['attendance'] === 'Joyfully accept') {
         $mailer->Subject = "You're on the guest list! 🎉";
-        $message = "We're thrilled to confirm your RSVP for the wedding. We can't wait to celebrate this special day with you!";
+        $message = "We're thrilled to confirm your RSVP for the wedding of Tadiwanashe & Elishama. We can't wait to celebrate this special day with you!";
     } else {
         $mailer->Subject = 'RSVP Update Received';
-        $message = "Thank you for letting us know. We are sorry you won't be able to make it, but you will certainly be in our thoughts on the big day!";
+        $message = "Thank you for letting us know. We are sorry you won't be able to make it for the wedding of Tadiwanashe & Elishama, but you will certainly be in our thoughts on the big day!";
     }
 
     $mailer->Body = '<p>' . htmlspecialchars(
