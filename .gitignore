@@ -17,5 +17,4 @@ node_modules
 .DS_Store
 
 # Generated from public/api/rsvps.php during build
-/out/api/rsvps.php
-/out/api/vendor/
+/out
