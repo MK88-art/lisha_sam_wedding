@@ -99,7 +99,7 @@ function sendConfirmationEmail(array $rsvp): void
     $mailer->CharSet = PHPMailer\PHPMailer\PHPMailer::CHARSET_UTF8;
     $mailer->setFrom(
         $fromAddress,
-        environment('RSVP_FROM_NAME', 'RSVP T&E WEDDING')
+        'RSVP T&E WEDDING'
     );
     $mailer->addAddress($rsvp['email'], $rsvp['name']);
     $mailer->isHTML(true);
