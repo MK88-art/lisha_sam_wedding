@@ -97,30 +97,20 @@ function sendConfirmationEmail(array $rsvp): void
     );
     $mailer->addAddress($rsvp['email'], $rsvp['name']);
     $mailer->isHTML(true);
-    $mailer->Subject = 'RSVP received - Lisha & Sam Wedding';
+    if ($rsvp['attendance'] === 'Joyfully accept') {
+        $mailer->Subject = "You're on the guest list! 🎉";
+        $message = "We're thrilled to confirm your RSVP for the wedding. We can't wait to celebrate this special day with you!";
+    } else {
+        $mailer->Subject = 'RSVP Update Received';
+        $message = "Thank you for letting us know. We are sorry you won't be able to make it, but you will certainly be in our thoughts on the big day!";
+    }
 
-    $name = htmlspecialchars($rsvp['name'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-    $attendance = htmlspecialchars($rsvp['attendance'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-    $plusOne = $rsvp['bringingPlusOne'] === 'yes'
-        ? '<p>Plus one: ' . htmlspecialchars(
-            $rsvp['plusOne'],
-            ENT_QUOTES | ENT_SUBSTITUTE,
-            'UTF-8'
-        ) . '</p>'
-        : '';
-
-    $mailer->Body = '<p>Dear ' . $name . ',</p>'
-        . '<p>We have received your RSVP for the Lisha &amp; Sam wedding.</p>'
-        . '<p>Your response: <strong>' . $attendance . '</strong></p>'
-        . $plusOne
-        . '<p>Thank you for letting us know. We appreciate your reply.</p>';
-    $mailer->AltBody = "Dear {$rsvp['name']},\n\n"
-        . "We have received your RSVP for the Lisha & Sam wedding.\n"
-        . "Your response: {$rsvp['attendance']}\n"
-        . ($rsvp['bringingPlusOne'] === 'yes'
-            ? "Plus one: {$rsvp['plusOne']}\n"
-            : '')
-        . "\nThank you for letting us know. We appreciate your reply.";
+    $mailer->Body = '<p>' . htmlspecialchars(
+        $message,
+        ENT_QUOTES | ENT_SUBSTITUTE,
+        'UTF-8'
+    ) . '</p>';
+    $mailer->AltBody = $message;
     $mailer->send();
 }
 
@@ -246,12 +236,14 @@ $plusOne = isset($data['plusOne']) && is_string($data['plusOne'])
 $attendance = $data['attendance'] ?? '';
 $phone = isset($data['phone']) && is_string($data['phone']) ? trim($data['phone']) : '';
 $email = isset($data['email']) && is_string($data['email']) ? trim($data['email']) : '';
+$phoneDigits = preg_replace('/\D+/', '', $phone);
 
 if (
     $name === '' || strlen($name) > 200
     || !in_array($guestStatus, ['married', 'single'], true)
     || !in_array($attendance, ['Joyfully accept', 'Regretfully decline'], true)
-    || $phone === '' || strlen($phone) > 50
+    || $phoneDigits === null || strlen($phoneDigits) < 7 || strlen($phoneDigits) > 15
+    || strlen($phone) > 50
     || !filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 254
 ) {
     respond(422, ['error' => 'Please check the required RSVP details and try again.']);
@@ -274,7 +266,53 @@ if ($guestStatus === 'married') {
 }
 
 try {
-    $statement = database()->prepare(
+    $pdo = database();
+    $duplicateCheck = $pdo->prepare(
+        "SELECT
+            EXISTS (
+                SELECT 1 FROM rsvps
+                WHERE lower(btrim(email)) = lower(btrim(:email))
+            ) AS email_exists,
+            EXISTS (
+                SELECT 1 FROM rsvps
+                WHERE regexp_replace(phone, '[^0-9]', '', 'g') = :phone_digits
+            ) AS phone_exists,
+            EXISTS (
+                SELECT 1 FROM rsvps
+                WHERE lower(regexp_replace(btrim(name), '\\s+', ' ', 'g'))
+                    = lower(regexp_replace(btrim(:name), '\\s+', ' ', 'g'))
+            ) AS name_exists"
+    );
+    $duplicateCheck->execute([
+        ':email' => $email,
+        ':phone_digits' => $phoneDigits,
+        ':name' => $name,
+    ]);
+    $duplicates = $duplicateCheck->fetch();
+    $duplicateFields = [];
+
+    foreach ([
+        'email_exists' => 'email address',
+        'phone_exists' => 'phone number',
+        'name_exists' => 'full name',
+    ] as $field => $label) {
+        if (
+            $duplicates[$field] === true
+            || $duplicates[$field] === 't'
+            || $duplicates[$field] === '1'
+        ) {
+            $duplicateFields[] = $label;
+        }
+    }
+
+    if ($duplicateFields !== []) {
+        respond(409, [
+            'error' => 'An RSVP with this ' . implode(', ', $duplicateFields)
+                . ' already exists. Please contact the organizers if you need to update it.',
+        ]);
+    }
+
+    $statement = $pdo->prepare(
         'INSERT INTO rsvps
             (name, guest_status, bringing_plus_one, plus_one_name, attendance, phone, email)
          VALUES
@@ -320,6 +358,12 @@ try {
 
     respond(201, ['success' => true, 'emailSent' => $emailSent]);
 } catch (PDOException $exception) {
+    if ($exception->getCode() === '23505') {
+        respond(409, [
+            'error' => 'An RSVP with one or more matching details was just submitted. Please contact the organizers if you need to update it.',
+        ]);
+    }
+
     error_log('RSVP database write failed: ' . $exception->getMessage());
     respond(503, [
         'error' => 'RSVP database request failed. Check the Supabase connection, confirm the rsvps table was created, and check PHP server logs.',

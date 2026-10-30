@@ -21,6 +21,14 @@ The PHP process needs permission to read these variables. Keep the connection UR
 
 After an RSVP has been saved, PHP sends a confirmation email using PHPMailer and the configured SMTP server. If SMTP is unavailable or misconfigured, the RSVP remains saved; the response and success page report that the confirmation email could not be sent, and the PHP error log records the mail failure.
 
+Confirmation email subject and message depend on attendance: guests who accept receive `You're on the guest list! 🎉`; guests who decline receive `RSVP Update Received`. Each receives the requested matching confirmation text.
+
+## Duplicate registrations
+
+The endpoint rejects an RSVP when its email address, phone number, or full name matches an existing registration. Email and full-name comparison ignore case and extra surrounding/internal whitespace; phone comparison ignores formatting and compares digits only. PostgreSQL unique indexes enforce the same checks to prevent simultaneous duplicate submissions.
+
+The new-database `backend/schema.sql` includes these indexes. For an existing table, first check and resolve any duplicate entries, then run `backend/add_duplicate_protection.sql` once in the Supabase SQL Editor. The migration will fail rather than silently remove any existing RSVP if duplicates are already present.
+
 ## Frontend
 
 By default the form and admin page use `/api/rsvps.php`. If PHP is hosted at another URL, set `NEXT_PUBLIC_RSVP_API_URL` to the endpoint URL at build time, then rebuild and deploy the static site. The external PHP host must allow requests from the site origin and return the required CORS headers for `POST` and `GET`, including the `X-Admin-Password` header. Keep this endpoint on HTTPS.
@@ -39,6 +47,8 @@ The Next.js dev server does not execute PHP. To test the same PHP endpoint local
 4. In a second terminal, run `pnpm dev` and open `http://localhost:3000`.
 
 Before building the static site for deployment, run `composer install --working-dir=backend --no-dev --classmap-authoritative`; the build copies the required mailer dependency into `out/api/vendor`. The PHP host must allow outbound TLS SMTP connections to `mail.adalacreations.com:465`.
+
+To improve delivery when messages land in spam, ensure the domain's SPF authorizes the SMTP provider, enable DKIM signing for the sender domain, and publish a DMARC policy. Also confirm the SMTP provider permits the configured From address and that SPF/DKIM alignment passes for the domain.
 
 The local API only allows browser requests from `localhost:3000` and `127.0.0.1:3000`. If the local PHP process reports a database or mail error, compare its output with the VPS PHP-FPM log to isolate a host/network/credential issue. A submission made locally still writes to the configured Supabase database and sends a real email, so use clearly marked test records and valid test recipient addresses; delete test records afterward if needed.
 
