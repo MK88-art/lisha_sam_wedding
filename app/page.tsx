@@ -88,6 +88,7 @@ export default function Page() {
   const [bringingPlusOne, setBringingPlusOne] = useState("");
   const [rsvpSubmitting, setRsvpSubmitting] = useState(false);
   const [rsvpError, setRsvpError] = useState("");
+  const [confirmationEmailSent, setConfirmationEmailSent] = useState(false);
   const [musicOn, setMusicOn] = useState(false);
   const [activeJournal, setActiveJournal] = useState(0);
   const [countdown, setCountdown] = useState({
@@ -400,8 +401,10 @@ export default function Page() {
               </div>
               <h3 className="font-serif text-4xl">You&apos;re on the list.</h3>
               <p className="mt-3 text-sm text-white/60">
-                Thank you for letting us know. We can&apos;t wait to celebrate
-                with you.
+                Thank you for letting us know.{" "}
+                {confirmationEmailSent
+                  ? "A confirmation email has been sent to the address you provided."
+                  : "Your RSVP was saved, but we couldn’t send a confirmation email. Please check your email address or contact us."}
               </p>
             </div>
           ) : (
@@ -433,7 +436,11 @@ export default function Page() {
                     },
                   );
                   const responseBody = await response.text();
-                  let result: { error?: string; success?: boolean };
+                  let result: {
+                    error?: string;
+                    success?: boolean;
+                    emailSent?: boolean;
+                  };
 
                   try {
                     result = JSON.parse(responseBody);
@@ -447,6 +454,7 @@ export default function Page() {
                     throw new Error(result.error || "Unable to submit RSVP.");
                   }
 
+                  setConfirmationEmailSent(result.emailSent === true);
                   setSubmitted(true);
                 } catch (error) {
                   setRsvpError(

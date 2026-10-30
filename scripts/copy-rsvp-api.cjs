@@ -5,6 +5,8 @@ const root = process.cwd();
 const source = path.join(root, "public", "api", "rsvps.php");
 const outputDir = path.join(root, "out", "api");
 const destination = path.join(outputDir, "rsvps.php");
+const composerVendor = path.join(root, "backend", "vendor");
+const outputVendor = path.join(outputDir, "vendor");
 
 if (!fs.existsSync(source)) {
   console.error(`Missing RSVP source: ${source}`);
@@ -19,4 +21,11 @@ if (!fs.existsSync(path.join(root, "out"))) {
 fs.mkdirSync(outputDir, { recursive: true });
 fs.copyFileSync(source, destination);
 
-console.log("RSVP API copied to out/api/rsvps.php");
+if (!fs.existsSync(path.join(composerVendor, "autoload.php"))) {
+  console.error("Missing backend/vendor/autoload.php. Run composer install in backend first.");
+  process.exit(1);
+}
+
+fs.cpSync(composerVendor, outputVendor, { recursive: true });
+
+console.log("RSVP API and mailer dependencies copied to out/api");

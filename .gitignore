@@ -13,7 +13,9 @@ __v0_jsx-dev-runtime.ts
 # Common ignores
 node_modules
 .next/
+/backend/vendor/
 .DS_Store
 
 # Generated from public/api/rsvps.php during build
 /out/api/rsvps.php
+/out/api/vendor/

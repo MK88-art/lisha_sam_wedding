@@ -4,6 +4,34 @@ declare(strict_types=1);
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, private');
 
+function allowedOrigins(): array
+{
+    return array_values(array_filter(array_map(
+        'trim',
+        explode(',', environment('RSVP_ALLOWED_ORIGINS'))
+    )));
+}
+
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+$allowedOrigins = allowedOrigins();
+
+if ($origin !== '' && in_array($origin, $allowedOrigins, true)) {
+    header("Access-Control-Allow-Origin: {$origin}");
+    header('Vary: Origin');
+    header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, X-Admin-Password');
+    header('Access-Control-Max-Age: 600');
+}
+
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
+    if ($origin === '' || !in_array($origin, $allowedOrigins, true)) {
+        respond(403, ['error' => 'Origin is not allowed.']);
+    }
+
+    http_response_code(204);
+    exit;
+}
+
 function respond(int $status, array $body): void
 {
     http_response_code($status);
@@ -19,6 +47,81 @@ function environment(string $name, string $default = ''): string
 
 class DatabaseConfigurationException extends RuntimeException
 {
+}
+
+function sendConfirmationEmail(array $rsvp): void
+{
+    $fromAddress = environment('RSVP_FROM_ADDRESS', 'rsvp-tadiwa-elishama@adalacreations.com');
+    $smtpUsername = environment('SMTP_USERNAME', $fromAddress);
+    $smtpPassword = environment('SMTP_PASSWORD');
+    $smtpHost = environment('SMTP_HOST', 'mail.adalacreations.com');
+    $smtpPort = filter_var(environment('SMTP_PORT', '465'), FILTER_VALIDATE_INT);
+    $smtpEncryption = strtolower(environment('SMTP_ENCRYPTION', 'ssl'));
+
+    if (
+        $smtpPassword === ''
+        || $smtpUsername === ''
+        || !filter_var($fromAddress, FILTER_VALIDATE_EMAIL)
+        || $smtpPort === false
+        || $smtpPort < 1
+        || $smtpPort > 65535
+        || !in_array($smtpEncryption, ['ssl', 'tls'], true)
+    ) {
+        throw new RuntimeException('SMTP configuration is missing or invalid.');
+    }
+
+    $autoload = __DIR__ . '/vendor/autoload.php';
+    if (!is_file($autoload)) {
+        $autoload = dirname(__DIR__, 2) . '/backend/vendor/autoload.php';
+    }
+    if (!is_file($autoload)) {
+        throw new RuntimeException('PHPMailer dependencies are not installed.');
+    }
+    require_once $autoload;
+
+    $mailer = new PHPMailer\PHPMailer\PHPMailer(true);
+    $mailer->isSMTP();
+    $mailer->Host = $smtpHost;
+    $mailer->Port = $smtpPort;
+    $mailer->SMTPAuth = true;
+    $mailer->Username = $smtpUsername;
+    $mailer->Password = $smtpPassword;
+    $mailer->SMTPSecure = $smtpEncryption === 'ssl'
+        ? PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS
+        : PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+    $mailer->Timeout = 15;
+    $mailer->CharSet = PHPMailer\PHPMailer\PHPMailer::CHARSET_UTF8;
+    $mailer->setFrom(
+        $fromAddress,
+        environment('RSVP_FROM_NAME', 'RSVP T&E WEDDING')
+    );
+    $mailer->addAddress($rsvp['email'], $rsvp['name']);
+    $mailer->isHTML(true);
+    $mailer->Subject = 'RSVP received - Lisha & Sam Wedding';
+
+    $name = htmlspecialchars($rsvp['name'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    $attendance = htmlspecialchars($rsvp['attendance'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    $plusOne = $rsvp['bringingPlusOne'] === 'yes'
+        ? '<p>Plus one: ' . htmlspecialchars(
+            $rsvp['plusOne'],
+            ENT_QUOTES | ENT_SUBSTITUTE,
+            'UTF-8'
+        ) . '</p>'
+        : '';
+
+    $mailer->Body = '<p>Dear ' . $name . ',</p>'
+        . '<p>We have received your RSVP for the Lisha &amp; Sam wedding.</p>'
+        . '<p>Your response: <strong>' . $attendance . '</strong></p>'
+        . $plusOne
+        . '<p>Thank you for letting us know. We appreciate your reply.</p>';
+    $mailer->AltBody = "Dear {$rsvp['name']},\n\n"
+        . "We have received your RSVP for the Lisha & Sam wedding.\n"
+        . "Your response: {$rsvp['attendance']}\n"
+        . ($rsvp['bringingPlusOne'] === 'yes'
+            ? "Plus one: {$rsvp['plusOne']}\n"
+            : '')
+        . "\nThank you for letting us know. We appreciate your reply.";
+    $mailer->send();
 }
 
 function database(): PDO
@@ -187,11 +290,10 @@ try {
         $guestStatus,
         PDO::PARAM_STR
     );
-    $statement->bindValue(
-        ':bringing_plus_one',
-        $guestStatus === 'married' && $bringingPlusOne === 'yes' ? 'yes' : 'no',
-        PDO::PARAM_STR
-    );
+    $bringingPlusOneValue = $guestStatus === 'married' && $bringingPlusOne === 'yes'
+        ? 'yes'
+        : 'no';
+    $statement->bindValue(':bringing_plus_one', $bringingPlusOneValue, PDO::PARAM_STR);
     $statement->bindValue(
         ':plus_one_name',
         $plusOne !== '' ? $plusOne : null,
@@ -202,7 +304,21 @@ try {
     $statement->bindValue(':email', $email, PDO::PARAM_STR);
     $statement->execute();
 
-    respond(201, ['success' => true]);
+    $emailSent = true;
+    try {
+        sendConfirmationEmail([
+            'name' => $name,
+            'bringingPlusOne' => $bringingPlusOneValue,
+            'plusOne' => $plusOne,
+            'attendance' => $attendance,
+            'email' => $email,
+        ]);
+    } catch (Exception $exception) {
+        $emailSent = false;
+        error_log('RSVP confirmation email failed: ' . $exception->getMessage());
+    }
+
+    respond(201, ['success' => true, 'emailSent' => $emailSent]);
 } catch (PDOException $exception) {
     error_log('RSVP database write failed: ' . $exception->getMessage());
     respond(503, [
