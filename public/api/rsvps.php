@@ -57,10 +57,10 @@ class DatabaseConfigurationException extends RuntimeException
 
 function sendConfirmationEmail(array $rsvp): void
 {
-    $fromAddress = environment('RSVP_FROM_ADDRESS', 'rsvp-tadiwa-elishama@adalacreations.com');
+    $fromAddress = environment('RSVP_FROM_ADDRESS', 'rsvp-tadiwa-elishama@adala-creations.com');
     $smtpUsername = environment('SMTP_USERNAME', $fromAddress);
     $smtpPassword = environment('SMTP_PASSWORD');
-    $smtpHost = environment('SMTP_HOST', 'mail.adalacreations.com');
+    $smtpHost = environment('SMTP_HOST', 'mail.adala-creations.com');
     $smtpPort = filter_var(environment('SMTP_PORT', '465'), FILTER_VALIDATE_INT);
     $smtpEncryption = strtolower(environment('SMTP_ENCRYPTION', 'ssl'));
 

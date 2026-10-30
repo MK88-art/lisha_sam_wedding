@@ -10,11 +10,11 @@ Configure these environment variables in the PHP hosting environment; do not put
 
 - `SUPABASE_DATABASE_URL` — the PostgreSQL connection URL from the Supabase dashboard. The endpoint requires TLS (`sslmode=require`) automatically. URL-encode any reserved characters in the username or password.
 - `RSVP_ADMIN_PASSWORD` (a long, unique secret used to protect registration viewing)
-- `SMTP_HOST` — `mail.adalacreations.com`
+- `SMTP_HOST` — `mail.adala-creations.com` (confirm the exact hostname with your mail provider)
 - `SMTP_PORT` — `465`
 - `SMTP_ENCRYPTION` — `ssl` for implicit TLS on port 465 (`tls` selects STARTTLS)
 - `SMTP_USERNAME` and `SMTP_PASSWORD` — SMTP authentication credentials
-- `RSVP_FROM_ADDRESS` — `rsvp-tadiwa-elishama@adalacreations.com`
+- `RSVP_FROM_ADDRESS` — `rsvp-tadiwa-elishama@adala-creations.com`
 - `RSVP_FROM_NAME` — `RSVP T&E WEDDING`
 - `RSVP_ERROR_LOG` (optional) — an absolute path outside the website document root for PHP/RSVP errors.
 
@@ -47,7 +47,7 @@ The Next.js dev server does not execute PHP. To test the same PHP endpoint local
 3. In one terminal, run `.\backend\start-local-api.ps1`. This starts PHP on `127.0.0.1:8001` and loads the PostgreSQL PDO extension for the PHP process without changing the system `php.ini`.
 4. In a second terminal, run `pnpm dev` and open `http://localhost:3000`.
 
-Before building the static site for deployment, run `composer install --working-dir=backend --no-dev --classmap-authoritative`; the build copies the required mailer dependency into `out/api/vendor`. The PHP host must allow outbound TLS SMTP connections to `mail.adalacreations.com:465`.
+Before building the static site for deployment, run `composer install --working-dir=backend --no-dev --classmap-authoritative`; the build copies the required mailer dependency into `out/api/vendor`. The PHP host must allow outbound TLS SMTP connections to the configured SMTP host and port.
 
 To improve delivery when messages land in spam, ensure the domain's SPF authorizes the SMTP provider, enable DKIM signing for the sender domain, and publish a DMARC policy. Also confirm the SMTP provider permits the configured From address and that SPF/DKIM alignment passes for the domain.
 
