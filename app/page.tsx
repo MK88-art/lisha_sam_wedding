@@ -403,7 +403,7 @@ export default function Page() {
               <p className="mt-3 text-sm text-white/60">
                 Thank you for letting us know.{" "}
                 {confirmationEmailSent
-                  ? "A confirmation email has been sent to the address you provided."
+                  ? "A confirmation email has been sent to the address you provided. Check your inbox (and spam folder) for details."
                   : "Your RSVP was saved, but we couldn’t send a confirmation email. Please check your email address or contact us."}
               </p>
             </div>
