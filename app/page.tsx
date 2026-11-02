@@ -2,6 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
+  getCountries,
+  getCountryCallingCode,
+  type CountryCode,
+} from "libphonenumber-js";
+import {
   ArrowDown,
   CalendarDays,
   Check,
@@ -86,6 +91,10 @@ export default function Page() {
   const [submitted, setSubmitted] = useState(false);
   const [guestStatus, setGuestStatus] = useState("");
   const [bringingPlusOne, setBringingPlusOne] = useState("");
+  const [phoneCountry, setPhoneCountry] = useState<CountryCode | "">("");
+  const [phoneCountries, setPhoneCountries] = useState<
+    Array<{ country: CountryCode; name: string; callingCode: string }>
+  >([]);
   const [rsvpSubmitting, setRsvpSubmitting] = useState(false);
   const [rsvpError, setRsvpError] = useState("");
   const [confirmationEmailSent, setConfirmationEmailSent] = useState(false);
@@ -98,6 +107,20 @@ export default function Page() {
     seconds: 0,
   });
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  useEffect(() => {
+    const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
+    const countries = getCountries()
+      .map((country) => ({
+        country,
+        name: regionNames.of(country) || country,
+        callingCode: getCountryCallingCode(country),
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    setPhoneCountries(countries);
+    setPhoneCountry("ZW");
+  }, []);
 
   useEffect(() => {
     const updateCountdown = () => {
@@ -286,7 +309,7 @@ export default function Page() {
           <h1 className="flex max-w-3xl flex-col items-start font-serif text-[3.35rem] leading-[0.9] tracking-[-0.045em] sm:text-8xl lg:text-[10rem]">
             <span>Tadiwanashe W.G. Samuel</span>
             <span className="font-light italic">&amp;</span>
-            <span>Elishama</span>
+            <span>Elishama Chipare</span>
           </h1>
           <div className="mt-auto flex items-center gap-3 pt-7 font-semibold text-white drop-shadow-md sm:gap-4 sm:text-sm lg:mt-9 lg:pt-0">
             <span className="h-px w-8 bg-white/60 sm:w-12" />
@@ -415,6 +438,22 @@ export default function Page() {
                 setRsvpError("");
 
                 const formData = new FormData(event.currentTarget);
+                const selectedCountryCode = String(
+                  formData.get("phoneCountry"),
+                );
+                const selectedPhoneCountry = phoneCountries.find(
+                  ({ country }) => country === selectedCountryCode,
+                );
+                if (!selectedPhoneCountry) {
+                  setRsvpError("Please select a country calling code.");
+                  setRsvpSubmitting(false);
+                  return;
+                }
+                const nationalPhoneNumber = String(
+                  formData.get("phoneNumber"),
+                )
+                  .replace(/\D/g, "")
+                  .replace(/^0+/, "");
                 const payload = {
                   name: formData.get("name"),
                   guestStatus: formData.get("guestStatus"),
@@ -422,7 +461,7 @@ export default function Page() {
                     guestStatus === "married" ? bringingPlusOne : "no",
                   plusOne: formData.get("plusOne"),
                   attendance: formData.get("attendance"),
-                  phone: formData.get("phone"),
+                  phone: `+${selectedPhoneCountry.callingCode}${nationalPhoneNumber}`,
                   email: formData.get("email"),
                 };
 
@@ -554,16 +593,65 @@ export default function Page() {
                   </option>
                 </select>
               </label>
-              <label className="grid gap-2 text-[11px] uppercase tracking-[0.2em] text-white/60">
-                Phone number
-                <input
-                  required
-                  type="tel"
-                  name="phone"
-                  className="border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-white/50 outline-none placeholder:text-white/25 focus:border-[#d7a58d]"
-                  placeholder="0781 234 567"
-                />
-              </label>
+              <div className="grid gap-2">
+                <label
+                  htmlFor="phoneNumber"
+                  className="text-[11px] uppercase tracking-[0.2em] text-white/60"
+                >
+                  Phone number
+                </label>
+                <div className="flex items-end gap-3">
+                  <label className="sr-only" htmlFor="phoneCountry">
+                    Country calling code
+                  </label>
+                  <select
+                    required
+                    id="phoneCountry"
+                    name="phoneCountry"
+                    value={phoneCountry}
+                    onChange={(event) => {
+                      const selectedCountry = phoneCountries.find(
+                        ({ country }) => country === event.target.value,
+                      );
+                      if (selectedCountry) {
+                        setPhoneCountry(selectedCountry.country);
+                      }
+                    }}
+                    className="max-w-[55%] border-b border-white/30 bg-transparent py-3 font-serif text-lg normal-case tracking-normal text-white/50 outline-none focus:border-[#d7a58d] sm:text-xl"
+                  >
+                    {phoneCountries.length === 0 && (
+                      <option value="" disabled>
+                        Loading country codes...
+                      </option>
+                    )}
+                    {phoneCountries.map(({ country, name, callingCode }) => (
+                      <option
+                        key={country}
+                        value={country}
+                        className="text-[#24342f]"
+                      >
+                        {name} (+{callingCode})
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    required
+                    id="phoneNumber"
+                    type="tel"
+                    name="phoneNumber"
+                    inputMode="tel"
+                    autoComplete="tel-national"
+                    pattern="[0-9\s().-]{4,20}"
+                    title="Enter your phone number without the country code."
+                    className="min-w-0 flex-1 border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-white/50 outline-none placeholder:text-white/25 focus:border-[#d7a58d]"
+                    placeholder="781 234 567"
+                  />
+                </div>
+                <p className="text-xs text-white/45">
+                  Choose your country code and enter the number without its
+                  leading zero.
+                </p>
+              </div>
               <label className="grid gap-2 text-[11px] uppercase tracking-[0.2em] text-white/60">
                 Email address
                 <input
@@ -576,7 +664,7 @@ export default function Page() {
               </label>
               <button
                 type="submit"
-                disabled={rsvpSubmitting}
+                disabled={rsvpSubmitting || phoneCountries.length === 0}
                 className="mt-4 flex w-fit items-center gap-3 rounded-full bg-[#d7a58d] px-7 py-4 text-[11px] font-medium uppercase tracking-[0.2em] text-[#24342f] transition-transform hover:scale-[1.02]"
               >
                 {rsvpSubmitting ? "Sending..." : "Send my RSVP"}{" "}
@@ -593,7 +681,7 @@ export default function Page() {
             
             OR RSVP to:<br/>
             <strong>Eliasaph: +263 781 203 104</strong> 
-            {/* |<strong>: </strong> */}
+            |<strong>R Nkomo: +263 772 841 939 </strong>
             
           </p>
           
@@ -687,7 +775,7 @@ export default function Page() {
               <p className="mt-3 text-sm leading-6 text-[#6d7770]">
                 Formal and glamorous — dress to impress and to dance. Married
                 couples are welcome to bring a plus one; singles have separate
-                invites.
+                invites. Strictly no children allowed.
               </p>
             </div>
             
