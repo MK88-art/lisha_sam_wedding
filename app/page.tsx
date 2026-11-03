@@ -10,6 +10,7 @@ import {
   ArrowDown,
   CalendarDays,
   Check,
+  ChevronLeft,
   ChevronRight,
   Palette,
   HelpCircle,
@@ -43,25 +44,84 @@ const heroSlides = [
   {
     src: "/wedding-slide-7.jpg",
   },
-    {
+  {
     src: "/wedding-slide-8.jpg",
   },
-    {
+  {
     src: "/wedding-slide-9.jpg",
   },
-    {
+  {
     src: "/wedding-slide-10.jpg",
   },
-    {
+  {
     src: "/wedding-slide-11.jpg",
   },
-    {
+  {
     src: "/wedding-slide-12.jpg",
-  }
+  },
 ];
 
-const journalSlides = [
-  ...heroSlides
+const journalChapters = [
+  {
+    title: "The First Hello",
+    subtitle: "Every beautiful story starts somewhere.",
+    story:
+      "Somewhere between ordinary days and unexpected moments, two paths crossed. What seemed like a simple conversation would become the beginning of something extraordinary...",
+    photos: ["/wedding-slide-2.jpg"],
+  },
+  {
+    title: "A Spark Was Born",
+    subtitle: "When strangers became something more.",
+    story:
+      "A simple conversation gave birth to more of them..The conversations became memories, and slowly, something special began to take shape. Without even knowing it, we were writing the first pages of our story.",
+    photos: ["/memo.jpg"],
+  },
+  {
+    title: "Getting to Know You",
+    subtitle: "Discovering the little things that made us us.",
+    story:
+      "Through laughter, shared dreams, interests and tastes, endless conversations and little adventures, we discovered that happiness wasn't just about where we were going, but who we were going there with.",
+    photos: [
+      "/wedding-slide-3.jpg",
+      "/wedding-slide-10.jpg",
+      "/wedding-slide-11.jpg",
+      "/wedding-slide-4.jpg",
+      
+    ],
+  },
+  {
+    title: "Falling in Love",
+    subtitle: "And suddenly, everything made sense.",
+    story:
+      "Somewhere along the way, friendship became affection, affection became love, and the thought of doing life together became a shared desire.",
+    photos: ["/wedding-slide-9.jpg"],
+  },
+  {
+    title: "Building Our Forever",
+    subtitle: "Growing together, one moment at a time.",
+    story:
+      "Not every chapter was perfect, but every moment brought us closer. We learned, grew, supported each other and discovered that true love is found in choosing one another, every single day.",
+    photos: ["/wedding-slide-1.jpg"],
+  },
+  {
+    title: "The Beautiful Yes !",
+    subtitle: "One question. A lifetime of answers.",
+    story:
+      "With hearts full of love and dreams of everything still to come, we made a promise to turn our shared tomorrow into a lifetime. And just like that, forever had a beginning.",
+    photos: [
+      "/wedding-slide-12.jpg",
+      "/wedding-slide-5.jpg",
+      "/wedding-slide-6.jpg",
+      "/wedding-slide-7.jpg",
+    ],
+  },
+  {
+    title: "Our Forever Begins..",
+    subtitle: "The next chapter starts here.",
+    story:
+      "Today, surrounded by the people who mean the most to us, we celebrate more than a wedding. We celebrate every moment that brought us here and the beautiful lifetime waiting ahead. Our greatest adventure begins!",
+    photos: ["/memo-2.jpg"],
+  },
 ];
 
 const petals = Array.from({ length: 18 }, (_, index) => ({
@@ -98,8 +158,13 @@ export default function Page() {
   const [rsvpSubmitting, setRsvpSubmitting] = useState(false);
   const [rsvpError, setRsvpError] = useState("");
   const [confirmationEmailSent, setConfirmationEmailSent] = useState(false);
+  const [expandedImage, setExpandedImage] = useState<{
+    src: string;
+    alt: string;
+  } | null>(null);
   const [musicOn, setMusicOn] = useState(false);
   const [activeJournal, setActiveJournal] = useState(0);
+  const journalTouchStart = useRef<{ x: number; y: number } | null>(null);
   const [countdown, setCountdown] = useState({
     days: 0,
     hours: 0,
@@ -107,6 +172,23 @@ export default function Page() {
     seconds: 0,
   });
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  useEffect(() => {
+    if (!expandedImage) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setExpandedImage(null);
+    };
+
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [expandedImage]);
 
   useEffect(() => {
     const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
@@ -174,14 +256,6 @@ export default function Page() {
     };
   }, []);
 
-  useEffect(() => {
-    const interval = window.setInterval(() => {
-      setActiveJournal((current) => (current + 3) % journalSlides.length);
-    }, 5000);
-
-    return () => window.clearInterval(interval);
-  }, []);
-
   const toggleMusic = () => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -198,6 +272,7 @@ export default function Page() {
   };
 
   return (
+    <>
     <main className="min-h-screen overflow-hidden bg-[#f8f5ef] text-[#24342f]">
       <header className="absolute inset-x-0 top-0 z-20">
         <div
@@ -208,37 +283,34 @@ export default function Page() {
           className="relative mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-6 lg:px-10"
           aria-label="Main navigation"
         >
-          <a
-            href="#top"
-            className="inline-flex shrink-0 items-center"
-          >
+          <a href="#top" className="inline-flex shrink-0 items-center">
             <img
               src="/tne-white-logo.png"
               alt="Elishama and Tadiwanashe wedding logo"
-              className="h-20 w-auto object-contain md:h-24 lg:h-32"
+              className="h-20 w-auto object-contain drop-shadow-[0_3px_5px_rgba(0,0,0,0.75)] md:h-24 lg:h-32"
             />
           </a>
-         
-<div className="hidden flex-1 items-center justify-center gap-4 whitespace-nowrap text-sm font-medium uppercase tracking-[0.2em] text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.95)] md:flex lg:gap-9">
-  <a
-    className="underline decoration-1 underline-offset-8 transition-opacity hover:opacity-60"
-    href="#our-story"
-  >
-    Our story
-  </a>
-  <a
-    className="underline decoration-1 underline-offset-8 transition-opacity hover:opacity-60"
-    href="#details"
-  >
-    Details
-  </a>
-  <a
-    className="underline decoration-1 underline-offset-8 transition-opacity hover:opacity-60"
-    href="#rsvp"
-  >
-    RSVP
-  </a>
-</div>
+
+          <div className="hidden flex-1 items-center justify-center gap-4 whitespace-nowrap text-sm font-medium uppercase tracking-[0.2em] text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.95)] md:flex lg:gap-9">
+            <a
+              className="underline decoration-1 underline-offset-8 transition-opacity hover:opacity-60"
+              href="#our-story"
+            >
+              Our story
+            </a>
+            <a
+              className="underline decoration-1 underline-offset-8 transition-opacity hover:opacity-60"
+              href="#love-journal"
+            >
+              Details
+            </a>
+            <a
+              className="underline decoration-1 underline-offset-8 transition-opacity hover:opacity-60"
+              href="#rsvp"
+            >
+              RSVP
+            </a>
+          </div>
 
           <a
             href="#rsvp"
@@ -306,14 +378,32 @@ export default function Page() {
           <p className="mb-5 text-medium font-light uppercase tracking-[0.32em] text-white drop-shadow-xl font-italic">
             We&apos;re getting married !
           </p>
-          <h1 className="flex max-w-3xl flex-col items-start font-serif text-[3.35rem] leading-[0.9] tracking-[-0.045em] sm:text-8xl lg:text-[10rem]">
-            <span>Tadiwanashe W.G. Samuel</span>
-            <span className="font-light italic">&amp;</span>
-            <span>Elishama Chipare</span>
-          </h1>
+          <div>
+            <h1 className="relative flex max-w-3xl flex-col items-start font-serif text-[3.5rem] leading-[0.88] tracking-[-0.045em] text-white drop-shadow-[0_3px_5px_rgba(0,0,0,0.75)] sm:text-7xl lg:text-[5.5rem]">
+              {" "}
+              <span>
+                Tadiwanashe
+                <br />
+                W.G. Samuel
+              </span>
+              <span className="px-[6rem] font-light italic sm:py-5 lg:py-6">
+                &amp;
+              </span>
+              <span>
+                Elishama
+                <br />
+                <span className="text-[2.5rem] font-light italic sm:text-5xl lg:text-[3.5rem]">
+                  "Marshmallow"
+                </span>
+                <br />
+                Chipare
+              </span>
+            </h1>
+          </div>
           <div className="mt-auto flex items-center gap-3 pt-7 font-semibold text-white drop-shadow-md sm:gap-4 sm:text-sm lg:mt-9 lg:pt-0">
             <span className="h-px w-8 bg-white/60 sm:w-12" />
-            <span className="text-2xl">December 19, 2026</span> <span className="h-px w-8 bg-white/60 sm:w-12" />
+            <span className="text-2xl">December 19, 2026</span>{" "}
+            <span className="h-px w-8 bg-white/60 sm:w-12" />
           </div>
         </div>
         <a
@@ -349,11 +439,166 @@ export default function Page() {
             favorite place with you.
           </p>
           <a
-            href="#details"
+            href="#love-journal"
             className="mt-8 inline-flex items-center gap-2 border-b border-[#a06b58] pb-2 text-[11px] font-medium uppercase tracking-[0.22em] text-[#a06b58]"
           >
             Join us <ChevronRight className="size-4" />
           </a>
+        </div>
+      </section>
+
+      <section
+        id="love-journal"
+        className="bg-[#f1ede5] px-6 py-24 lg:px-10 lg:py-32"
+      >
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-10 text-center sm:mb-14">
+            <p className="mb-5 text-[11px] font-medium uppercase tracking-[0.3em] text-[#a06b58]">
+              Our love journal
+            </p>
+            <h2 className="font-serif text-5xl leading-[0.95] tracking-[-0.03em] text-[#24342f] sm:text-6xl">
+              Our Journey <span className="italic">Together</span>
+            </h2>
+            <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-[#6d7770]">
+              Seven chapters, a thousand little moments, and one beautiful
+              story. Turn the pages and journey through our story.
+            </p>
+          </div>
+
+          <div className="mx-auto max-w-5xl [perspective:1800px]">
+            {(() => {
+              const chapter = journalChapters[activeJournal];
+              return (
+                <article
+                  key={activeJournal}
+                  aria-live="polite"
+                  aria-label={`Chapter ${activeJournal + 1}: ${chapter.title}`}
+                  onTouchStart={(event) => {
+                    const touch = event.touches[0];
+                    journalTouchStart.current = {
+                      x: touch.clientX,
+                      y: touch.clientY,
+                    };
+                  }}
+                  onTouchEnd={(event) => {
+                    const start = journalTouchStart.current;
+                    journalTouchStart.current = null;
+                    if (!start) return;
+
+                    const touch = event.changedTouches[0];
+                    const deltaX = touch.clientX - start.x;
+                    const deltaY = touch.clientY - start.y;
+                    if (Math.abs(deltaX) < 50 || Math.abs(deltaX) < Math.abs(deltaY)) {
+                      return;
+                    }
+
+                    setActiveJournal(
+                      (current) =>
+                        (current + (deltaX < 0 ? 1 : -1) + journalChapters.length) %
+                        journalChapters.length,
+                    );
+                  }}
+                  className="journal-page-flip touch-pan-y grid overflow-hidden border border-[#d6cbb9] bg-[#fbf8f2] shadow-[0_28px_70px_rgba(54,34,27,0.18)] md:min-h-[470px] md:grid-cols-2"
+                >
+                  <div className="flex flex-col justify-center border-b border-[#e1d8ca] p-7 sm:p-10 md:border-b-0 md:border-r md:p-12 lg:p-16">
+                    <p className="text-[10px] font-medium uppercase tracking-[0.24em] text-[#a06b58]">
+                      Chapter {String(activeJournal + 1).padStart(2, "0")}{" "}
+                      <span className="px-2 text-[#c8b9a2]">/</span>{" "}
+                      {String(journalChapters.length).padStart(2, "0")}
+                    </p>
+                    <h3 className="mt-7 font-serif text-4xl leading-[0.98] tracking-[-0.03em] text-[#24342f] sm:text-5xl">
+                      {chapter.title}
+                    </h3>
+                    <p className="mt-4 font-serif text-xl italic leading-snug text-[#8b6759] sm:text-2xl">
+                      {chapter.subtitle}
+                    </p>
+                    <p className="mt-6 text-sm leading-7 text-[#6d7770] sm:text-base">
+                      {chapter.story}
+                    </p>
+                  </div>
+                  <div
+                    className={`grid min-h-[300px] auto-rows-fr gap-1.5 bg-[#e6dfd3] p-2.5 sm:min-h-[390px] sm:p-4 ${
+                      chapter.photos.length === 1
+                        ? "grid-cols-1"
+                        : "grid-cols-2"
+                    }`}
+                  >
+                    {chapter.photos.map((src, index) => (
+                      <div
+                        key={src}
+                        className={`min-h-0 overflow-hidden bg-[#d6cbb9] ${
+                          chapter.photos.length === 3 && index === 0
+                            ? "row-span-2"
+                            : ""
+                        }`}
+                      >
+                        <img
+                          src={src}
+                          alt={`${chapter.title} — memory ${index + 1}`}
+                          className="size-full object-cover"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </article>
+              );
+            })()}
+
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+              <button
+                type="button"
+                onClick={() =>
+                  setActiveJournal(
+                    (current) =>
+                      (current - 1 + journalChapters.length) %
+                      journalChapters.length,
+                  )
+                }
+                className="inline-flex items-center gap-2 rounded-full border border-[#bcae9a] px-5 py-3 text-[10px] font-medium uppercase tracking-[0.18em] text-[#53645d] transition-colors hover:bg-[#e8e0d4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a06b58]"
+                aria-label="Turn to the previous chapter"
+                title="Previous chapter"
+              >
+                <ChevronLeft className="size-4" />
+                <span className="hidden sm:inline">Previous</span>
+              </button>
+              <div
+                className="flex items-center gap-2"
+                role="group"
+                aria-label="Choose a journal chapter"
+              >
+                {journalChapters.map((chapter, index) => (
+                  <button
+                    key={chapter.title}
+                    type="button"
+                    onClick={() => setActiveJournal(index)}
+                    aria-label={`Go to chapter ${index + 1}: ${chapter.title}`}
+                    aria-current={activeJournal === index ? "step" : undefined}
+                    className={`size-2.5 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a06b58] focus-visible:ring-offset-2 ${
+                      activeJournal === index
+                        ? "bg-[#a06b58]"
+                        : "bg-[#c8b9a2] hover:bg-[#8b6759]"
+                    }`}
+                  />
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  setActiveJournal(
+                    (current) => (current + 1) % journalChapters.length,
+                  )
+                }
+                className="inline-flex items-center gap-2 rounded-full bg-[#24342f] px-5 py-3 text-[10px] font-medium uppercase tracking-[0.18em] text-[#f8f5ef] transition-colors hover:bg-[#53645d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a06b58] focus-visible:ring-offset-2"
+                aria-label="Turn to the next chapter"
+                title="Next chapter"
+              >
+                <span className="hidden sm:inline">Next</span>
+                <ChevronRight className="size-4" />
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -393,6 +638,71 @@ export default function Page() {
               </div>
             ))}
           </div>
+          <div className="mt-12 grid items-center gap-8 border-t border-[#c8c5bb] pt-12 lg:grid-cols-[0.7fr_1.3fr] lg:gap-16">
+            <div className="max-w-sm">
+              <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.3em] text-[#a06b58]">
+                Attire &amp; palette
+              </p>
+              <h3 className="font-serif text-4xl leading-[0.98] tracking-[-0.03em] text-[#24342f] sm:text-5xl">
+                Formal.
+                <br />
+                Elegant.
+                <br />
+                <span className="italic">Timeless.</span>
+              </h3>
+              <p className="mt-5 text-sm leading-7 text-[#6d7770]">
+                Dress to impress and to dance. We invite you to choose from our
+                wedding colours and make the palette your own.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-2">
+                {[
+                  ["Burgundy", "#751729"],
+                  ["Black", "#242321"],
+                  ["Gold", "#b58a43"],
+                  ["Champagne", "#d9b895"],
+                  ["Ivory", "#f7f0e2"],
+                ].map(([colour, value]) => (
+                  <span
+                    key={colour}
+                    title={colour}
+                    aria-label={colour}
+                    className="size-7 rounded-full border border-[#24342f]/15 shadow-sm"
+                    style={{ backgroundColor: value }}
+                  />
+                ))}
+              </div>
+              <p className="mt-3 text-[10px] uppercase tracking-[0.18em] text-[#8a8175]">
+                Burgundy · Black · Gold · Champagne · Ivory
+              </p>
+            </div>
+            <figure className="mx-auto w-full max-w-2xl rotate-[0.4deg] rounded-sm bg-[#fbf8f2] p-2.5 shadow-[0_24px_55px_rgba(54,34,27,0.16)] ring-1 ring-[#b99b6b]/35 sm:p-4">
+              <button
+                type="button"
+                onClick={() =>
+                  setExpandedImage({
+                    src: "/pallet-A.jpg",
+                    alt: "Wedding attire guide with formal outfit inspiration and the burgundy, black, gold, champagne, and ivory colour palette",
+                  })
+                }
+                aria-label="View the wedding attire guide full screen"
+                className="group relative block w-full cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a06b58]"
+              >
+                <img
+                  src="/pallet-A.jpg"
+                  alt="Wedding attire guide with formal outfit inspiration and the burgundy, black, gold, champagne, and ivory colour palette"
+                  className="h-auto w-full"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <span className="absolute bottom-3 right-3 rounded-full bg-[#24342f]/80 px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.16em] text-white opacity-0 shadow transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                  View full screen
+                </span>
+              </button>
+              <figcaption className="px-2 pb-1 pt-3 text-center font-serif text-sm italic tracking-wide text-[#72514a]">
+                A little guide for celebrating in style
+              </figcaption>
+            </figure>
+          </div>
         </div>
       </section>
 
@@ -400,12 +710,12 @@ export default function Page() {
         id="rsvp"
         className="bg-[#24342f] px-6 py-24 text-[#f8f5ef] lg:px-10 lg:py-32"
       >
-        <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-28">
-          <div>
+        <div className="mx-auto grid min-w-0 max-w-7xl gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-28">
+          <div className="min-w-0">
             <p className="mb-5 text-[11px] font-medium uppercase tracking-[0.3em] text-[#d7a58d]">
               Will you join us?
             </p>
-            <h2 className="font-serif text-6xl leading-[0.9] tracking-[-0.04em] sm:text-7xl">
+            <h2 className="w-full max-w-full font-serif text-5xl leading-[0.95] tracking-[-0.04em] sm:text-7xl">
               We hope
               <br />
               you can <span className="italic">make it.</span>
@@ -449,9 +759,7 @@ export default function Page() {
                   setRsvpSubmitting(false);
                   return;
                 }
-                const nationalPhoneNumber = String(
-                  formData.get("phoneNumber"),
-                )
+                const nationalPhoneNumber = String(formData.get("phoneNumber"))
                   .replace(/\D/g, "")
                   .replace(/^0+/, "");
                 const payload = {
@@ -505,14 +813,14 @@ export default function Page() {
                   setRsvpSubmitting(false);
                 }
               }}
-              className="grid max-w-xl gap-6 border-t border-white/20 pt-8"
+              className="grid w-full min-w-0 max-w-xl grid-cols-[minmax(0,1fr)] gap-6 border-t border-white/20 pt-8 [&>*]:min-w-0"
             >
               <label className="grid gap-2 text-[11px] uppercase tracking-[0.2em] text-white/60">
                 Your name
                 <input
                   required
                   name="name"
-                  className="border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-white/50 outline-none placeholder:text-white/25 focus:border-[#d7a58d]"
+                  className="w-full min-w-0 border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-white/50 outline-none placeholder:text-white/25 focus:border-[#d7a58d]"
                   placeholder="First and last name"
                 />
               </label>
@@ -526,7 +834,7 @@ export default function Page() {
                     setGuestStatus(event.target.value);
                     setBringingPlusOne("");
                   }}
-                  className="border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-text-white/50 outline-none focus:border-[#d7a58d]"
+                  className="w-full min-w-0 border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-text-white/50 outline-none focus:border-[#d7a58d]"
                 >
                   <option value="" disabled className="text-[#24342f]">
                     Select your status
@@ -550,7 +858,7 @@ export default function Page() {
                       onChange={(event) =>
                         setBringingPlusOne(event.target.value)
                       }
-                      className="border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-white/50 outline-none focus:border-[#d7a58d]"
+                      className="w-full min-w-0 border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-white/50 outline-none focus:border-[#d7a58d]"
                     >
                       <option value="" disabled className="text-[#24342f]">
                         Select an answer
@@ -569,7 +877,7 @@ export default function Page() {
                       <input
                         required
                         name="plusOne"
-                        className="border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-white/50 outline-none placeholder:text-white/25 focus:border-[#d7a58d]"
+                        className="w-full min-w-0 border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-white/50 outline-none placeholder:text-white/25 focus:border-[#d7a58d]"
                         placeholder="First and last name"
                       />
                     </label>
@@ -580,7 +888,7 @@ export default function Page() {
                 Will you be joining us?
                 <select
                   name="attendance"
-                  className="border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-white/50 outline-none focus:border-[#d7a58d]"
+                  className="w-full min-w-0 border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-white/50 outline-none focus:border-[#d7a58d]"
                 >
                   <option value="Joyfully accept" className="text-[#24342f]">
                     Joyfully accept
@@ -600,7 +908,7 @@ export default function Page() {
                 >
                   Phone number
                 </label>
-                <div className="flex items-end gap-3">
+                <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-end sm:gap-3">
                   <label className="sr-only" htmlFor="phoneCountry">
                     Country calling code
                   </label>
@@ -617,7 +925,7 @@ export default function Page() {
                         setPhoneCountry(selectedCountry.country);
                       }
                     }}
-                    className="max-w-[55%] border-b border-white/30 bg-transparent py-3 font-serif text-lg normal-case tracking-normal text-white/50 outline-none focus:border-[#d7a58d] sm:text-xl"
+                    className="w-full border-b border-white/30 bg-transparent py-3 font-serif text-lg normal-case tracking-normal text-white/50 outline-none focus:border-[#d7a58d] sm:w-auto sm:max-w-[55%] sm:text-xl"
                   >
                     {phoneCountries.length === 0 && (
                       <option value="" disabled>
@@ -643,7 +951,7 @@ export default function Page() {
                     autoComplete="tel-national"
                     pattern="[0-9\s().-]{4,20}"
                     title="Enter your phone number without the country code."
-                    className="min-w-0 flex-1 border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-white/50 outline-none placeholder:text-white/25 focus:border-[#d7a58d]"
+                    className="w-full min-w-0 flex-1 border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-white/50 outline-none placeholder:text-white/25 focus:border-[#d7a58d]"
                     placeholder="781 234 567"
                   />
                 </div>
@@ -658,7 +966,7 @@ export default function Page() {
                   required
                   type="email"
                   name="email"
-                  className="border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-white/50 outline-none placeholder:text-white/25 focus:border-[#d7a58d]"
+                  className="w-full min-w-0 border-b border-white/30 bg-transparent py-3 font-serif text-2xl normal-case tracking-normal text-white/50 outline-none placeholder:text-white/25 focus:border-[#d7a58d]"
                   placeholder="you@example.com"
                 />
               </label>
@@ -678,13 +986,11 @@ export default function Page() {
             </form>
           )}
           <p className="text-lg">
-            
-            OR RSVP to:<br/>
-            <strong>Eliasaph: +263 781 203 104</strong> 
-            |<strong>R Nkomo: +263 772 841 939 </strong>
-            
+            OR RSVP to:
+            <br />
+            <strong>Eliasaph: +263 781 203 104</strong><br/>
+            <strong>R Nkomo: +263 772 841 939 </strong>
           </p>
-          
         </div>
       </section>
 
@@ -756,13 +1062,15 @@ export default function Page() {
               </h3>
               <p className="mt-3 text-sm leading-6 text-[#6d7770]">
                 From Harare CBD, take Seke Road southeast towards Hatfield.
-                Follow local signs to Goshen Inspiration Park, 8 Fern Road.
-                You can also see <a
-              className="text-blue-600 text-underline hover:opacity-60"
-              href="#venue-map"
-            >googlemaps below..</a>
+                Follow local signs to Goshen Inspiration Park, 8 Fern Road. You
+                can also see{" "}
+                <a
+                  className="text-blue-600 text-underline hover:opacity-60"
+                  href="#venue-map"
+                >
+                  googlemaps below..
+                </a>
               </p>
-
             </div>
             <div className="border-t border-[#c8c5bb] pt-5">
               <HelpCircle
@@ -777,9 +1085,34 @@ export default function Page() {
                 couples are welcome to bring a plus one; singles have separate
                 invites. Strictly no children allowed.
               </p>
+              <figure className="mx-auto mt-6 w-full max-w-xs rounded-sm bg-[#fbf8f2] p-2.5 shadow-[0_16px_35px_rgba(54,34,27,0.14)] ring-1 ring-[#b99b6b]/35">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setExpandedImage({
+                      src: "/pallet-B.jpg",
+                      alt: "Wedding colour palette inspiration in burgundy, black, gold, champagne, and ivory",
+                    })
+                  }
+                  aria-label="View the wedding colour palette full screen"
+                  className="group relative block w-full cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a06b58]"
+                >
+                  <img
+                    src="/pallet-B.jpg"
+                    alt="Wedding colour palette inspiration in burgundy, black, gold, champagne, and ivory"
+                    className="h-auto w-full"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <span className="absolute bottom-3 right-3 rounded-full bg-[#24342f]/80 px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.16em] text-white opacity-0 shadow transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                    View full screen
+                  </span>
+                </button>
+                <figcaption className="px-2 pb-1 pt-3 text-center text-[10px] font-medium uppercase tracking-[0.2em] text-[#8a6d55]">
+                  Colour inspiration
+                </figcaption>
+              </figure>
             </div>
-            
-            
           </div>
         </div>
       </section>
@@ -805,48 +1138,6 @@ export default function Page() {
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
           />
-        </div>
-      </section>
-
-      <section
-        id="love-journal"
-        className="bg-[#f1ede5] px-6 py-24 lg:px-10 lg:py-32"
-      >
-        <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.7fr_1.3fr] lg:items-center lg:gap-20">
-          <div>
-            <p className="mb-5 text-[11px] font-medium uppercase tracking-[0.3em] text-[#a06b58]">
-              Our love journal
-            </p>
-            <h2 className="max-w-md font-serif text-5xl leading-[0.95] tracking-[-0.03em] text-[#24342f] sm:text-6xl">
-              A few pages from our <span className="italic">story.</span>
-            </h2>
-            <p className="mt-6 max-w-sm text-sm leading-7 text-[#6d7770]">
-              Glimpses of the laughter, milestones, and moments that brought us
-              here.
-            </p>
-          </div>
-          <div
-            className="relative h-[430px] sm:h-[520px] lg:h-[640px]"
-            aria-label="A floating slideshow of memories"
-          >
-            {Array.from({ length: 3 }, (_, index) => {
-              const slide =
-                journalSlides[(activeJournal + index) % journalSlides.length];
-              const positions = [
-                "left-[4%] top-[6%] rotate-[-5deg]",
-                "right-[3%] top-[22%] rotate-[4deg]",
-                "left-[24%] bottom-[4%] rotate-[-2deg]",
-              ];
-              return (
-                <div
-                  key={`${activeJournal}-${slide.src}`}
-                  className={`journal-card absolute ${positions[index]} ${index === 0 ? "h-[62%] w-[48%]" : "h-[48%] w-[42%]"}`}
-                >
-                  <img src={slide.src} className="size-full object-cover" />
-                </div>
-              );
-            })}
-          </div>
         </div>
       </section>
 
@@ -906,5 +1197,30 @@ export default function Page() {
         </p>
       </footer>
     </main>
+      {expandedImage && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Full-screen image preview"
+          onClick={() => setExpandedImage(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#171411]/95 p-4 backdrop-blur-sm sm:p-8"
+        >
+          <button
+            type="button"
+            onClick={() => setExpandedImage(null)}
+            aria-label="Close full-screen image"
+            className="absolute right-4 top-4 flex size-11 items-center justify-center rounded-full border border-white/30 bg-black/30 text-white transition-colors hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d7a58d] sm:right-6 sm:top-6"
+          >
+            <X className="size-5" />
+          </button>
+          <img
+            src={expandedImage.src}
+            alt={expandedImage.alt}
+            onClick={(event) => event.stopPropagation()}
+            className="max-h-[calc(100vh-2rem)] max-w-full object-contain shadow-2xl sm:max-h-[calc(100vh-4rem)]"
+          />
+        </div>
+      )}
+    </>
   );
 }
