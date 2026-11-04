@@ -3,8 +3,8 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Lisha & Sam | Our Wedding',
-  description: 'Join Lisha and Sam as they celebrate their wedding in the Hudson Valley.',
+  title: 'Tadiwa & Elishama | Our Wedding',
+  description: 'Join Tadiwa and Elishama as they celebrate their wedding in the Hudson Valley.',
   generator: 'Next.js',
   icons: {
     icon: [
